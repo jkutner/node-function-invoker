@@ -152,6 +152,31 @@ describe('server', () => {
         expect(await exitCode).toBe(0);
     });
 
+    it('runs the uppercase-object function', async () => {
+        const protocol = 'http';
+        const server = createServerProcess('uppercase-object', { protocol });
+
+        const exitCode = new Promise(resolve => {
+            server.on('exit', resolve);
+        });
+
+        await waitForServer(protocol);
+
+        const { payload, headers } = await requestReplyCall(
+            Message.builder()
+                .addHeader('Content-Type', 'text/plain')
+                .addHeader('Accept', 'text/plain')
+                .payload('{ "name": "riff" }')
+                .build()
+        );
+        expect(headers.getValue('Error')).toBeNull();
+        expect(headers.getValue('Content-Type')).toMatch('text/plain');
+        expect(payload.toString()).toEqual('RIFF');
+
+        server.kill('SIGINT');
+        expect(await exitCode).toBe(0);
+    });
+
     it('runs the uppercase-payload function', async () => {
         const protocol = 'http';
         const server = createServerProcess('uppercase-payload', { protocol });

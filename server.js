@@ -83,19 +83,26 @@ async function startup() {
             throw new Error(`Unknown interaction model '${$interactionModel}'`);
     }
 
+    let customArgumentTransformer = fn.$argumentTransformer || '';
     let argumentTransformer;
-    switch ($argumentType) {
-        case 'message':
-            argumentTransformer = argumentTransformers.message;
+    switch (customArgumentTransformer) {
+        case '':
+            switch ($argumentType) {
+                case 'message':
+                    argumentTransformer = argumentTransformers.message;
+                    break;
+                case 'headers':
+                    argumentTransformer = argumentTransformers.headers;
+                    break;
+                case 'payload':
+                    argumentTransformer = argumentTransformers.payload;
+                    break
+                default:
+                    throw new Error(`Unknown argument type '${$argumentType}'`);
+            }
             break;
-        case 'headers':
-            argumentTransformer = argumentTransformers.headers;
-            break;
-        case 'payload':
-            argumentTransformer = argumentTransformers.payload;
-            break
         default:
-            throw new Error(`Unknown argument type '${$argumentType}'`);
+            argumentTransformer = require(customArgumentTransformer);
     }
 
     const protocol = RIFF_FUNCTION_INVOKER_PROTOCOL || '';
